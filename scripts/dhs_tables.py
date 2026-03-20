@@ -121,6 +121,11 @@ BREAKDOWN_FILTERS = {
         and d.get("IsPreferred", 0) == 1
         and not str(d.get("CharacteristicLabel", "")).startswith("..")
     ),
+    "subnational_detail": lambda d: (
+        d.get("CharacteristicCategory") == "Region"
+        and d.get("IsPreferred", 0) == 1
+        and str(d.get("CharacteristicLabel", "")).startswith("..")
+    ),
     "residence": lambda d: d.get("CharacteristicCategory") in ("Total", "Residence"),
     "wealth": lambda d: d.get("CharacteristicCategory") in ("Total", "Wealth quintile"),
     "age": lambda d: d.get("CharacteristicCategory") in ("Total", "Age"),
@@ -201,7 +206,7 @@ def cmd_table(args):
 
     # Build the API breakdown parameter
     api_breakdown = None
-    if args.breakdown in ("subnational",):
+    if args.breakdown in ("subnational", "subnational_detail"):
         api_breakdown = "subnational"
     elif args.breakdown in ("residence", "wealth", "age", "all"):
         api_breakdown = "all"
@@ -248,9 +253,9 @@ def cmd_table(args):
     multi_survey = len(survey_ids) > 1
 
     # Determine row key structure
-    if args.breakdown == "subnational":
+    if args.breakdown in ("subnational", "subnational_detail"):
         row_key_name = "Region"
-        get_row_key = lambda r: r.get("CharacteristicLabel", "")
+        get_row_key = lambda r: r.get("CharacteristicLabel", "").lstrip(".")
     elif args.breakdown in ("residence", "wealth", "age", "all"):
         row_key_name = "Category"
         get_row_key = lambda r: r.get("CharacteristicLabel", "")
@@ -535,7 +540,7 @@ def main():
     p_table.add_argument("--indicators", required=True,
                          help="Comma-separated indicator IDs")
     p_table.add_argument("--breakdown",
-                         choices=["national", "subnational", "residence", "wealth", "age", "all"],
+                         choices=["national", "subnational", "subnational_detail", "residence", "wealth", "age", "all"],
                          default="national", help="Breakdown level (default: national)")
     p_table.add_argument("--output", help="Output CSV path (default: stdout)")
     p_table.add_argument("--format", choices=["csv", "markdown"], default="csv")
