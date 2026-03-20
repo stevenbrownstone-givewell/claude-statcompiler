@@ -19,8 +19,6 @@ Ask for DHS indicators in plain English — the skill figures out the right API 
 
 **Subnational** — ITN ownership and child net use by province (DRC 2023-24):
 
-![Subnational bar chart](https://github.com/user-attachments/assets/placeholder-subnational.png)
-
 | Region | HH with ITN (%) | Children <5 under ITN (%) | Sample Size |
 |--------|-----------------|---------------------------|-------------|
 | Equateur | 88.8 | 74.2 | 4,652 |
@@ -30,8 +28,6 @@ Ask for DHS indicators in plain English — the skill figures out the right API 
 
 **Trends** — ITN coverage across three DRC DHS surveys:
 
-![Trend line chart](https://github.com/user-attachments/assets/placeholder-trends.png)
-
 | Survey | HH with ITN (%) | Children <5 under ITN (%) |
 |--------|-----------------|---------------------------|
 | 2007 | 9.2 | 5.8 |
@@ -39,8 +35,6 @@ Ask for DHS indicators in plain English — the skill figures out the right API 
 | 2023-24 | 69.4 | 57.0 |
 
 **Demographic breakdown** — Stunting and wasting by wealth quintile (DRC 2023-24):
-
-![Wealth grouped bar chart](https://github.com/user-attachments/assets/placeholder-wealth.png)
 
 | Category | Children stunted (%) | Children wasted (%) |
 |----------|---------------------|---------------------|
@@ -151,8 +145,3 @@ python3 scripts/dhs_tables.py table \
 ## Data source
 
 All data comes from the [DHS Program STATcompiler API](https://api.dhsprogram.com/). The DHS Program is funded by USAID and implemented by ICF. Data is from nationally representative household surveys conducted across 90+ countries.
-
-## Related
-
-- [validate-dhs](https://github.com/stevenbrownstone-givewell/validate-dhs) — Claude Code skill for validating DHS microdata computations against STATcompiler
-- [DHS_DRC_Malaria](https://github.com/stevenbrownstone-givewell/DHS_DRC_Malaria) — DRC bed net usage analysis pipeline using DHS 2023-24 + AMF data
