@@ -55,14 +55,14 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/dhs_tables.py surveys <country_code>
 - No breakdown specified → `--breakdown national` (default)
 
 **State/province-level data:** The script auto-detects the finest subnational
-level available. DHS surveys often only have broad zones (e.g., Nigeria's 6
-geopolitical zones), while MIS surveys may have state-level detail (e.g.,
-Nigeria's 37 states). The script will prefer state-level rows when they exist.
+level available. When state/province-level detail rows exist in the API response
+the script prefers them automatically; otherwise it falls back to broad zones.
 
-**When the user asks about a specific state/province** (e.g., "Kogi", "Bas-Uele"),
-and you suspect the latest DHS may only have zone-level data, use `--survey latest_mis`
-to try the most recent MIS survey instead, which often has finer subnational breakdowns
-for malaria indicators. You can also pass a specific survey ID (e.g., `NG2021MIS`).
+**Always start with `--survey latest`** (the default DHS), even for state-level
+queries. Many recent DHS surveys (e.g., Nigeria 2024) include state-level data.
+Only use `--survey latest_mis` as a fallback if the latest DHS returns only
+zone-level data and the user needs finer granularity — MIS surveys often have
+state-level breakdowns for malaria indicators specifically.
 
 ### Output
 - Default: CSV file + auto-generated chart
@@ -103,8 +103,8 @@ The script handles API querying, filtering, pivoting, CSV writing, and chart gen
 | "child mortality rates in DRC" | CD | CM_ECMR_C_NNR,CM_ECMR_C_IMR,CM_ECMR_C_U5M | all | national |
 | "ANC coverage trends in Tanzania" | TZ | RH_ANCN_W_N4P | all | national |
 | "stunting by wealth in Ethiopia" | ET | NT_CH_NUT_SN2 | latest | wealth |
-| "ITN use in Kogi state, Nigeria" | NG | ML_NETU_P_ITN,ML_NETC_C_ITN | latest_mis | subnational |
-| "malaria by state in Nigeria" | NG | ML_NETU_P_ITN,ML_NETC_C_ITN | latest_mis | subnational |
+| "stunting in Kebbi state, Nigeria" | NG | CN_NUTS_C_HA2,CN_NUTS_C_HA3 | latest | subnational |
+| "ITN use in Kogi state, Nigeria" | NG | ML_NETU_P_ITN,ML_NETC_C_ITN | latest | subnational |
 
 ## Chart Type Selection
 
