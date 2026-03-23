@@ -54,6 +54,16 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/dhs_tables.py surveys <country_code>
 - "by age" / "by age group" → `--breakdown age`
 - No breakdown specified → `--breakdown national` (default)
 
+**State/province-level data:** The script auto-detects the finest subnational
+level available. DHS surveys often only have broad zones (e.g., Nigeria's 6
+geopolitical zones), while MIS surveys may have state-level detail (e.g.,
+Nigeria's 37 states). The script will prefer state-level rows when they exist.
+
+**When the user asks about a specific state/province** (e.g., "Kogi", "Bas-Uele"),
+and you suspect the latest DHS may only have zone-level data, use `--survey latest_mis`
+to try the most recent MIS survey instead, which often has finer subnational breakdowns
+for malaria indicators. You can also pass a specific survey ID (e.g., `NG2021MIS`).
+
 ### Output
 - Default: CSV file + auto-generated chart
 - If user says "markdown table" → `--format markdown`
@@ -93,6 +103,8 @@ The script handles API querying, filtering, pivoting, CSV writing, and chart gen
 | "child mortality rates in DRC" | CD | CM_ECMR_C_NNR,CM_ECMR_C_IMR,CM_ECMR_C_U5M | all | national |
 | "ANC coverage trends in Tanzania" | TZ | RH_ANCN_W_N4P | all | national |
 | "stunting by wealth in Ethiopia" | ET | NT_CH_NUT_SN2 | latest | wealth |
+| "ITN use in Kogi state, Nigeria" | NG | ML_NETU_P_ITN,ML_NETC_C_ITN | latest_mis | subnational |
+| "malaria by state in Nigeria" | NG | ML_NETU_P_ITN,ML_NETC_C_ITN | latest_mis | subnational |
 
 ## Chart Type Selection
 

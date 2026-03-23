@@ -55,15 +55,26 @@ def get_all_surveys(country_code):
     return sorted(data, key=lambda x: str(x.get("SurveyYear", "")))
 
 
-def resolve_survey_ids(country_code, survey_arg):
+def resolve_survey_ids(country_code, survey_arg, breakdown=None):
     """Resolve survey argument to list of survey IDs.
 
     survey_arg can be:
-      - 'latest': most recent DHS
+      - 'latest': most recent DHS (or MIS if subnational and MIS is newer/finer)
+      - 'latest_mis': most recent MIS explicitly
       - 'all': all DHS surveys
       - comma-separated IDs or years
     """
     surveys = get_all_surveys(country_code)
+
+    if survey_arg == "latest_mis":
+        mis = [s for s in surveys if s.get("SurveyType") == "MIS"]
+        if not mis:
+            print(f"No MIS surveys found for {country_code}.", file=sys.stderr)
+            sys.exit(1)
+        latest = mis[-1]
+        sid = latest["SurveyId"]
+        print(f"Latest MIS: {sid} ({latest.get('SurveyYearLabel', '')})", file=sys.stderr)
+        return [sid]
 
     if survey_arg == "latest":
         dhs = [s for s in surveys if s.get("SurveyType") == "DHS"]
@@ -116,11 +127,7 @@ def resolve_survey_ids(country_code, survey_arg):
 
 BREAKDOWN_FILTERS = {
     "national": lambda d: d.get("CharacteristicCategory") == "Total",
-    "subnational": lambda d: (
-        d.get("CharacteristicCategory") == "Region"
-        and d.get("IsPreferred", 0) == 1
-        and not str(d.get("CharacteristicLabel", "")).startswith("..")
-    ),
+    "subnational": None,  # Resolved dynamically in cmd_table
     "subnational_detail": lambda d: (
         d.get("CharacteristicCategory") == "Region"
         and d.get("IsPreferred", 0) == 1
@@ -131,6 +138,35 @@ BREAKDOWN_FILTERS = {
     "age": lambda d: d.get("CharacteristicCategory") in ("Total", "Age"),
     "all": lambda d: d.get("IsPreferred", 0) == 1 or d.get("CharacteristicCategory") == "Total",
 }
+
+
+def resolve_subnational_filter(records):
+    """Pick the finest subnational level available.
+
+    DHS API marks sub-region rows with '..' prefix on CharacteristicLabel.
+    For some survey types (e.g. MIS) both zone and state rows exist.
+    Prefer state-level ('..') rows when present; fall back to zone-level.
+    """
+    detail_rows = [
+        r for r in records
+        if r.get("CharacteristicCategory") == "Region"
+        and r.get("IsPreferred", 0) == 1
+        and str(r.get("CharacteristicLabel", "")).startswith("..")
+    ]
+    if detail_rows:
+        print("Subnational detail (state/province level) found — using finer breakdown.",
+              file=sys.stderr)
+        return lambda d: (
+            d.get("CharacteristicCategory") == "Region"
+            and d.get("IsPreferred", 0) == 1
+            and str(d.get("CharacteristicLabel", "")).startswith("..")
+        )
+    else:
+        return lambda d: (
+            d.get("CharacteristicCategory") == "Region"
+            and d.get("IsPreferred", 0) == 1
+            and not str(d.get("CharacteristicLabel", "")).startswith("..")
+        )
 
 
 # ── Short labels for indicators ──────────────────────────────────────────────
@@ -202,7 +238,7 @@ def cmd_search(args):
 
 def cmd_table(args):
     """Fetch data and output as CSV table."""
-    survey_ids = resolve_survey_ids(args.country, args.survey)
+    survey_ids = resolve_survey_ids(args.country, args.survey, args.breakdown)
 
     # Build the API breakdown parameter
     api_breakdown = None
@@ -235,7 +271,10 @@ def cmd_table(args):
         return
 
     # Apply breakdown filter
-    filt = BREAKDOWN_FILTERS.get(args.breakdown, BREAKDOWN_FILTERS["national"])
+    if args.breakdown == "subnational":
+        filt = resolve_subnational_filter(all_records)
+    else:
+        filt = BREAKDOWN_FILTERS.get(args.breakdown, BREAKDOWN_FILTERS["national"])
     filtered = [r for r in all_records if filt(r)]
 
     if not filtered:
